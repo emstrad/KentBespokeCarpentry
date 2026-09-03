@@ -18,9 +18,11 @@ export default function ProjectsPage() {
         <p className="body-lg d1" data-reveal="" style={{ maxWidth: "56ch", lineHeight: 1.55, color: "rgba(10,10,10,.72)" }}>
           A selection of what we&apos;ve designed, built and installed for homes around the county. Every one drawn up with the client, made by us, and fitted by the same hands.
         </p>
-        {PROJECTS.map((p) => (
-          <ProjectCard key={p.slug} project={p} wide headingLevel="h2" />
-        ))}
+        <div className="projects__grid">
+          {PROJECTS.map((p) => (
+            <ProjectCard key={p.slug} project={p} headingLevel="h2" />
+          ))}
+        </div>
       </section>
       <Banner title="Something similar in mind?" sub="We'd like to hear about it." />
     </>

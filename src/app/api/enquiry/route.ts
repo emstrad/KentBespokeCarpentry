@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb, schema } from "@/db";
+import { ensureSchema } from "@/db/bootstrap";
 import { enquirySchema } from "@/lib/enquiry";
 import { sendFormSubmit } from "@/lib/formsubmit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
@@ -32,13 +33,16 @@ export async function POST(req: Request) {
 
   let id: string | null = null;
   let stored = false;
+  let dbError: string | undefined;
   try {
+    await ensureSchema();
     const db = getDb();
     const [row] = await db.insert(schema.enquiries).values({ name, email, phone: phone || null, ideas: ideas || null, source, attachments: [] }).returning({ id: schema.enquiries.id });
     id = row?.id ?? null;
     stored = !!id;
   } catch (e) {
-    console.error("[enquiry] DB insert failed:", e instanceof Error ? e.message : e);
+    dbError = e instanceof Error ? e.message : String(e);
+    console.error("[enquiry] DB insert failed:", dbError);
   }
 
   const mail = await sendFormSubmit({
@@ -54,7 +58,10 @@ export async function POST(req: Request) {
   if (!mail.ok) console.error("[enquiry] FormSubmit failed:", mail.detail);
 
   if (!stored && !mail.ok) {
-    return NextResponse.json({ error: "We couldn't send that right now. Please call us on 07494 280614." }, { status: 502 });
+    return NextResponse.json({
+      error: "We couldn't send that right now. Please call us on 07494 280614.",
+      detail: { database: dbError?.slice(0, 200) ?? "unknown", email: mail.detail?.slice(0, 200) ?? "unknown" },
+    }, { status: 502 });
   }
   return NextResponse.json({ id, ok: true, stored, emailed: mail.ok });
 }

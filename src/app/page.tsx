@@ -47,9 +47,11 @@ export default function HomePage() {
           <h2 id="recent-h" className="h-xl" data-reveal="">Recent work<br /><span className="light">across Kent</span></h2>
           <Link href="/projects" className="ul-link" data-reveal=""><span>View all projects →</span><span /></Link>
         </div>
-        {PROJECTS.slice(0, 3).map((p) => (
-          <ProjectCard key={p.slug} project={p} href="/projects" headingLevel="h3" />
-        ))}
+        <div className="projects__grid">
+          {PROJECTS.slice(0, 3).map((p) => (
+            <ProjectCard key={p.slug} project={p} href="/projects" headingLevel="h3" />
+          ))}
+        </div>
       </section>
 
       <Banner title="Have a project in mind?" sub="Let's talk it through." />

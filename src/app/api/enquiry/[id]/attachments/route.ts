@@ -3,6 +3,7 @@ import { and, eq, gt } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
+import { ensureSchema } from "@/db/bootstrap";
 import type { Attachment } from "@/db/schema";
 import { ACCEPTED_TYPES, MAX_FILES, MAX_FILE_BYTES } from "@/lib/enquiry";
 import { sendFormSubmit } from "@/lib/formsubmit";
@@ -24,6 +25,7 @@ const attachSchema = z.object({
 });
 
 async function findRecentEnquiry(id: string) {
+  await ensureSchema();
   const db = getDb();
   const since = new Date(Date.now() - ATTACH_WINDOW_MS);
   const [row] = await db.select().from(schema.enquiries).where(and(eq(schema.enquiries.id, id), gt(schema.enquiries.createdAt, since))).limit(1);
