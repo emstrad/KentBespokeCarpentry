@@ -25,9 +25,9 @@ const STEPS = [
 const IMG_SIZES = "(min-width: 768px) 50vw, 100vw";
 
 /**
- * Design › Build › Install. On ≥768px browsers with scroll-driven animation support this is a
- * 600vh sticky counter-scroll (see globals.css). Everywhere else it is three stacked cards, each
- * with its own image.
+ * Design › Build › Install. In browsers with scroll-driven animation support this is a sticky
+ * counter-scroll (side by side on desktop, image-over-text on mobile; see globals.css).
+ * Everywhere else it is three stacked cards, each with its own image.
  */
 export function Showcase() {
   return (
@@ -35,6 +35,7 @@ export function Showcase() {
       <div className="showcase__sticky">
         <div className="showcase__wrap">
           <div className="showcase__col showcase__col--left">
+            <div className="showcase__track showcase__track--left">
             {STEPS.map((s, i) => (
               <article key={s.n} className={`slide ${s.tone}`}>
                 <div className="slide__mobimg" data-drift="">
@@ -48,13 +49,16 @@ export function Showcase() {
                 </div>
               </article>
             ))}
+            </div>
           </div>
           <div className="showcase__col showcase__col--right" aria-hidden="true">
+            <div className="showcase__track showcase__track--right">
             {[...STEPS].reverse().map((s) => (
               <div key={s.n} className="showcase__img">
                 <Image src={s.src} alt="" fill sizes={IMG_SIZES} quality={72} style={{ objectFit: "cover" }} />
               </div>
             ))}
+            </div>
           </div>
         </div>
       </div>

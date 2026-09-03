@@ -19,12 +19,14 @@ const LINKS = [
 export function Header() {
   const { menuOpen, setMenuOpen, openBooking, bookingOpen } = useUi();
   const [hidden, setHidden] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const lastY = useRef(0);
   const pathname = usePathname();
 
   // Hide on scroll-down, show on scroll-up (never while the menu is open).
   useEffect(() => {
     lastY.current = window.scrollY;
+    setScrolled(window.scrollY > 40);
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
@@ -33,6 +35,7 @@ export function Header() {
         const y = window.scrollY;
         const hide = y > lastY.current && y > 80 && !menuOpen;
         setHidden(hide);
+        setScrolled(y > 40);
         lastY.current = y;
         ticking = false;
       });
@@ -57,13 +60,13 @@ export function Header() {
 
   return (
     <>
-      <header className="header" data-nav={hidden ? "hidden" : "shown"} data-menu-open={menuState}>
+      <header className="header" data-nav={hidden ? "hidden" : "shown"} data-menu-open={menuState} data-scrolled={scrolled ? "true" : "false"}>
         <Link href="/" className="header__logo" aria-label="Kent Bespoke Carpentry, home">
           <Image className="logo-navy" src="/assets/logo-navy.png" alt="Kent Bespoke Carpentry Ltd" width={104} height={52} priority />
           <Image className="logo-white" src="/assets/logo-white.png" alt="" width={104} height={52} />
         </Link>
         <div className="header__actions">
-          <a className="pill pill--sm pill--outline" href={NAP.phoneHref} aria-label={`Call ${NAP.phoneDisplay}`}>
+          <a className="pill pill--sm pill--outline header__phone" href={NAP.phoneHref} aria-label={`Call ${NAP.phoneDisplay}`}>
             <PhoneIcon />
             <span className="hide-m">{NAP.phoneDisplay}</span>
           </a>
