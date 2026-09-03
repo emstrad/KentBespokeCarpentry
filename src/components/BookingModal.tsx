@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ACCEPTED_TYPES, MAX_FILES, MAX_FILE_BYTES } from "@/lib/enquiry";
+import { sendFormSubmitFromBrowser } from "@/lib/formsubmitClient";
 import { TickIcon, UploadIcon } from "./Icons";
 import { useUi } from "./UiProvider";
 
@@ -82,8 +83,13 @@ function Dialog({ onClose }: { onClose: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone, email, ideas, source: "booking", company }),
       });
-      const data = (await res.json().catch(() => ({}))) as { id?: string | null; error?: string };
+      const data = (await res.json().catch(() => ({}))) as { id?: string | null; error?: string; emailed?: boolean; stored?: boolean };
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again or call us.");
+      if (data.emailed === false) {
+        // Server-side send was rejected; send the notification from the browser instead.
+        const fb = await sendFormSubmitFromBrowser({ _subject: `New enquiry: ${name}`, _replyto: email, name, email, phone: phone || "not given", ideas, source: "booking", reference: data.id ?? "not stored" });
+        if (!fb.ok && !data.stored) throw new Error(fb.message || "We couldn't send that right now. Please call us on 07494 280614.");
+      }
       setEnquiryId(data.id ?? null);
       go(3);
     } catch (err) {

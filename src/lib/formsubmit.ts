@@ -18,6 +18,7 @@ export async function sendFormSubmit(fields: Record<string, string>): Promise<{ 
         Accept: "application/json",
         Origin: SITE_URL,
         Referer: `${SITE_URL}/`,
+        "User-Agent": "Mozilla/5.0 (compatible; KentBespokeCarpentry/1.0; +https://www.kentbespokecarpentry.co.uk)",
       },
       body: JSON.stringify({ _template: "table", _captcha: "false", ...fields }),
       signal: AbortSignal.timeout(10_000),
