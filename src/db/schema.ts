@@ -1,0 +1,24 @@
+import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+
+export const enquirySource = pgEnum("enquiry_source", ["booking", "contact"]);
+
+export type Attachment = {
+  name: string;
+  size: number;
+  type: string;
+  url?: string;
+};
+
+export const enquiries = pgTable("enquiries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  email: text("email").notNull(),
+  ideas: text("ideas"),
+  source: enquirySource("source").notNull(),
+  attachments: jsonb("attachments").$type<Attachment[]>().notNull().default([]),
+});
+
+export type Enquiry = typeof enquiries.$inferSelect;
+export type NewEnquiry = typeof enquiries.$inferInsert;
