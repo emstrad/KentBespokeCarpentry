@@ -60,6 +60,11 @@ emit a new SQL file, then `npm run db:migrate`.
 ## FormSubmit activation (one-off)
 
 FormSubmit requires the destination address to be confirmed before it forwards anything.
+The activation email goes to **the recipient address**, so whoever owns the sales@ inbox has
+to click it. To test end-to-end before the client does that, temporarily set both
+`FORMSUBMIT_ENDPOINT` and `NEXT_PUBLIC_FORMSUBMIT_ENDPOINT` to
+`https://formsubmit.co/ajax/your@address` on the Vercel project, redeploy, submit once, click
+the activation link in your own inbox, and submit again. Remove both variables afterwards.
 
 1. Deploy (or run locally with `FORMSUBMIT_ENDPOINT` set) and submit one enquiry.
 2. FormSubmit emails **sales@kentbespokecarpentry.co.uk** with an "Activate form" link.
@@ -96,6 +101,10 @@ Booking modal step 3 (optional inspiration files)
        ├─ merges into enquiries.attachments (deduped, max 8)
        └─ emails the links via FormSubmit ("Inspiration for enquiry — {name}")
 ```
+
+**Private store:** the Blob store can be left *private*. Uploads are made with `access: "private"`
+and the email links point at `GET /api/enquiry/[id]/attachments?file=…`, which streams the file
+from the store. Links only work for paths under that enquiry's folder.
 
 **Why client-side Blob upload:** Vercel serverless functions cap request bodies at 4.5 MB,
 which is smaller than one phone photo. Uploading from the browser with a server-issued token

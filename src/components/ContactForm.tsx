@@ -23,15 +23,18 @@ export function ContactForm() {
           ideas: fd.get("message") ?? "", source: "contact", company: fd.get("company") ?? "",
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; emailed?: boolean; stored?: boolean; id?: string | null };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; emailed?: boolean; stored?: boolean; id?: string | null; emailDetail?: string };
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again or call us.");
+      let note = "";
       if (data.emailed === false) {
         const name = String(fd.get("name") ?? ""), email = String(fd.get("email") ?? "");
         const fb = await sendFormSubmitFromBrowser({ _subject: `New enquiry: ${name}`, _replyto: email, name, email, phone: String(fd.get("phone") || "not given"), ideas: String(fd.get("message") || "not given"), source: "contact", reference: data.id ?? "not stored" });
         if (!fb.ok && !data.stored) throw new Error(fb.message || "We couldn't send that right now. Please call us on 07494 280614.");
+        if (fb.message) note = ` (FormSubmit: ${fb.message})`;
+        else if (!fb.ok && data.emailDetail) note = ` (email not confirmed: ${data.emailDetail})`;
       }
       form.reset();
-      setState({ status: "sent", message: "Thanks, we’ll be in touch within one working day." });
+      setState({ status: "sent", message: `Thanks, we’ll be in touch within one working day.${note}` });
     } catch (err) {
       setState({ status: "error", message: err instanceof Error ? err.message : "Something went wrong. Please try again or call us." });
     }
