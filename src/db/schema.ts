@@ -20,6 +20,8 @@ export const enquiries = pgTable("enquiries", {
   ideas: text("ideas"),
   source: enquirySource("source").notNull(),
   attachments: jsonb("attachments").$type<Attachment[]>().notNull().default([]),
+  /** When the notification email was sent (null until the booking modal's final step). */
+  notifiedAt: timestamp("notified_at", { withTimezone: true }),
 });
 
 export type Enquiry = typeof enquiries.$inferSelect;

@@ -29,6 +29,7 @@ export function ensureSchema(): Promise<void> {
       "attachments" jsonb DEFAULT '[]'::jsonb NOT NULL
     )`);
     await sql.query(`CREATE INDEX IF NOT EXISTS "enquiries_created_at_idx" ON "enquiries" ("created_at" DESC)`);
+    await sql.query(`ALTER TABLE "enquiries" ADD COLUMN IF NOT EXISTS "notified_at" timestamp with time zone`);
   })().catch((e) => { ready = null; throw e; });
   return ready;
 }
