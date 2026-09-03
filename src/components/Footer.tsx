@@ -7,7 +7,7 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="footer__top">
-        <Link href="/" className="footer__logo" aria-label="Kent Bespoke Carpentry — home">
+        <Link href="/" className="footer__logo" aria-label="Kent Bespoke Carpentry, home">
           <Image src="/assets/logo-navy.png" alt="Kent Bespoke Carpentry Ltd" width={144} height={72} />
         </Link>
         <div className="footer__nap">

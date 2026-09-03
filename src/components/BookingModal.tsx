@@ -8,7 +8,7 @@ import { useUi } from "./UiProvider";
 type Step = 1 | 2 | 3 | 4;
 type Dir = "fwd" | "back";
 
-const LABELS = ["Step 1 of 3 — Your details", "Step 2 of 3 — Your ideas", "Step 3 of 3 — Inspiration (optional)", "Done"];
+const LABELS = ["Step 1 of 3: Your details", "Step 2 of 3: Your ideas", "Step 3 of 3: Inspiration (optional)", "Done"];
 const TITLES = ["Book a free visit", "What would you like us to make?", "Show us what you like", "Thank you"];
 
 const fmtSize = (n: number) => (n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} KB`);
@@ -198,7 +198,7 @@ function Dialog({ onClose }: { onClose: () => void }) {
           <div className="modal__step" data-dir={dir} style={{ gap: 20 }}>
             <div className="modal__ok" role="status">
               <span className="tick"><TickIcon /></span>
-              <p><strong>Sent to our team — thank you.</strong> We&apos;ll call or email within one working day.</p>
+              <p><strong>Sent to our team, thank you.</strong> We&apos;ll call or email within one working day.</p>
             </div>
             <label className="drop" htmlFor="bk-files">
               <UploadIcon />
@@ -219,7 +219,7 @@ function Dialog({ onClose }: { onClose: () => void }) {
             )}
             {apiError && <p className="field__err" role="alert">{apiError}</p>}
             <div className="modal__btns">
-              <button type="button" className="pill pill--lg pill--outline-navy" style={{ padding: "0 22px" }} onClick={onClose} disabled={busy}>{files.length ? "Cancel" : "Skip — I'm done"}</button>
+              <button type="button" className="pill pill--lg pill--outline-navy" style={{ padding: "0 22px" }} onClick={onClose} disabled={busy}>{files.length ? "Cancel" : "Skip, I'm done"}</button>
               {files.length > 0 && (
                 <button type="button" className="pill pill--lg pill--navy grow" onClick={onFinish} disabled={busy}>{busy ? "Uploading…" : "Send inspiration"}</button>
               )}

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Project } from "@/lib/site";
+import { CardView } from "./CardView";
 
 const SIZES = "(min-width: 768px) calc(100vw - 2 * clamp(16px, 4vw, 64px)), 100vw";
 
@@ -20,13 +21,13 @@ export function ProjectCard({ project: p, href, wide, headingLevel = "h3", delay
         </div>
         <span className="card__num">/{p.num}</span>
       </div>
-      {href && <div className="card__view" aria-hidden="true">View</div>}
+      {href && <CardView />}
     </>
   );
   const cls = `card${wide ? " card--wide" : ""}${delay ?? ""}`;
   if (href) {
     return (
-      <Link href={href} className={cls} data-drift="" data-reveal="" aria-label={`${p.title} — view all projects`}>
+      <Link href={href} className={cls} data-drift="" data-reveal="" aria-label={`${p.title}, view all projects`}>
         {inner}
       </Link>
     );

@@ -42,12 +42,12 @@ export async function POST(req: Request) {
   }
 
   const mail = await sendFormSubmit({
-    _subject: `New enquiry — ${name}`,
+    _subject: `New enquiry: ${name}`,
     _replyto: email,
     name,
     email,
-    phone: phone || "—",
-    ideas: ideas || "—",
+    phone: phone || "not given",
+    ideas: ideas || "not given",
     source,
     reference: id ?? "not stored",
   });

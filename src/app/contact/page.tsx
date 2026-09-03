@@ -3,7 +3,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { NAP } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Contact — book a free visit or get a quote",
+  title: "Contact: book a free visit or get a quote",
   description: "Tell Kent Bespoke Carpentry about your project. Call 07494 280614, email sales@kentbespokecarpentry.co.uk, or send an enquiry and we'll reply within one working day.",
   alternates: { canonical: "/contact" },
   openGraph: { title: "Contact Kent Bespoke Carpentry", url: "/contact" },

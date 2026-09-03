@@ -4,9 +4,10 @@ import { Accordion } from "@/components/Accordion";
 import { Banner } from "@/components/Banner";
 import { Hero } from "@/components/Hero";
 import { SERVICES } from "@/lib/site";
+import heroImage from "../../../public/assets/staircase.jpg";
 
 export const metadata: Metadata = {
-  title: "About — a small Kent carpentry team that does the whole job",
+  title: "About: a small Kent carpentry team that does the whole job",
   description: "Kent Bespoke Carpentry is a small team that designs, builds and fits bespoke joinery itself: fixed quotes, one point of contact, and a finish you can live with.",
   alternates: { canonical: "/about" },
   openGraph: { title: "About Kent Bespoke Carpentry", url: "/about" },
@@ -23,7 +24,7 @@ export default function AboutPage() {
     <>
       <Hero
         variant="about"
-        src="/assets/staircase.jpg"
+        src={heroImage}
         alt="Softwood staircase with glass balustrade, mid-installation"
         eyebrow="About us"
         objectPosition="50% 50%"

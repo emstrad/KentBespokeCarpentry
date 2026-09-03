@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 
 type State = { status: "idle" | "busy" | "sent" | "error"; message?: string };
 
-/** Contact page form — same submit path as the booking modal (POST /api/enquiry, source: "contact"). */
+/** Contact page form: same submit path as the booking modal (POST /api/enquiry, source: "contact"). */
 export function ContactForm() {
   const [state, setState] = useState<State>({ status: "idle" });
 
@@ -25,7 +25,7 @@ export function ContactForm() {
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again or call us.");
       form.reset();
-      setState({ status: "sent", message: "Thanks — we’ll be in touch within one working day." });
+      setState({ status: "sent", message: "Thanks, we’ll be in touch within one working day." });
     } catch (err) {
       setState({ status: "error", message: err instanceof Error ? err.message : "Something went wrong. Please try again or call us." });
     }
