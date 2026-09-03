@@ -181,17 +181,17 @@ img { display: block; }
 
 /* ---------- Project cards ---------- */
 .projects { display: flex; flex-direction: column; gap: 24px; }
+.projects__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .projects__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
-.card { display: block; position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 10; max-height: 82vh; color: #fff; background: var(--navy); }
-.card--wide { aspect-ratio: 16 / 10; }
+.card { display: block; position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 4 / 5; color: #fff; background: var(--navy); }
 .card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .card__shade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(14,33,64,0.65), rgba(14,33,64,0) 45%); }
-.card__meta { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: clamp(20px, 2.5vw, 36px); gap: 16px; }
+.card__meta { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: clamp(18px, 1.8vw, 28px); gap: 12px; }
 .card__meta > div { display: flex; flex-direction: column; gap: 6px; }
 .card__type { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.8; }
-.card__title { font-size: clamp(20px, 2vw, 32px); font-weight: 400; letter-spacing: -0.01em; }
+.card__title { font-size: clamp(18px, 1.5vw, 24px); font-weight: 400; letter-spacing: -0.01em; }
 .card__num { font-size: 13px; letter-spacing: 0.1em; opacity: 0.8; }
-.card__view { display: none; position: absolute; top: 50%; left: 50%; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; background: rgba(255,255,255,0.22); color: #fff; border: 1px solid rgba(255,255,255,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.25s, translate 0.18s ease-out; }
+.card__view { display: none; position: absolute; top: 50%; left: 50%; width: 88px; height: 88px; margin: -44px 0 0 -44px; border-radius: 50%; background: rgba(255,255,255,0.22); color: #fff; border: 1px solid rgba(255,255,255,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.25s, translate 0.18s ease-out; }
 
 /* ---------- Banner ---------- */
 .banner { padding: 0 var(--gutter) clamp(40px, 6vw, 80px); }
@@ -320,11 +320,11 @@ img { display: block; }
 /* ---------- Scroll-driven animations ---------- */
 @supports (animation-timeline: view()) {
   .hero__img { animation: kbcHero linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
-  [data-drift] img { scale: 1.12; animation: kbcDrift linear both; animation-timeline: view(); }
+  [data-drift] img { scale: 1.2; animation: kbcDrift linear both; animation-timeline: view(); }
 }
 /* Fallback for browsers without scroll-driven animations: Parallax.tsx writes --p / --hp on scroll. */
 @supports not (animation-timeline: view()) {
-  [data-drift] img { scale: 1.12; translate: 0 calc((var(--p, 0.5) - 0.5) * 40%); will-change: translate; }
+  [data-drift] img { scale: 1.2; translate: 0 calc((var(--p, 0.5) - 0.5) * 40%); will-change: translate; }
   .hero__img { translate: 0 calc(var(--hp, 0) * 40%); will-change: translate; }
 }
 @supports (animation-timeline: view()) {
@@ -373,7 +373,7 @@ img { display: block; }
   .menu__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; padding-top: 24px; }
   .menu__meta > div:nth-child(2) { grid-column: 1 / -1; }
   .header__logo img { height: 44px; }
-  .card { aspect-ratio: 4 / 5; max-height: none; }
+  .projects__grid { grid-template-columns: 1fr; gap: 16px; }
   .projects__head { flex-direction: column; align-items: flex-start; }
 }
 
