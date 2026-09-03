@@ -6,11 +6,11 @@ import { sendFormSubmitFromBrowser } from "@/lib/formsubmitClient";
 import { TickIcon, UploadIcon } from "./Icons";
 import { useUi } from "./UiProvider";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3;
 type Dir = "fwd" | "back";
 
-const LABELS = ["Step 1 of 3: Your details", "Step 2 of 3: Your ideas", "Step 3 of 3: Inspiration (optional)", "Done"];
-const TITLES = ["Book a free visit", "What would you like us to make?", "Show us what you like", "Thank you"];
+const LABELS = ["Step 1 of 2: Your details", "Step 2 of 2: Your ideas", "Done"];
+const TITLES = ["Book a free visit", "What would you like us to make?", "Thank you"];
 
 const fmtSize = (n: number) => (n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} KB`);
 
@@ -28,12 +28,11 @@ function Dialog({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState("");
   const [ideas, setIdeas] = useState("");
   const [company, setCompany] = useState(""); // honeypot
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [enquiryId, setEnquiryId] = useState<string | null>(null);
-  const [mailNote, setMailNote] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<false | "sending" | "uploading">(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [mailNote, setMailNote] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleId = "booking-title";
 
@@ -54,10 +53,7 @@ function Dialog({ onClose }: { onClose: () => void }) {
 
   // Focus management per step.
   useEffect(() => {
-    const t = window.setTimeout(() => {
-      const el = cardRef.current?.querySelector<HTMLElement>("[data-autofocus]");
-      el?.focus();
-    }, 80);
+    const t = window.setTimeout(() => cardRef.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus(), 80);
     return () => window.clearTimeout(t);
   }, [step]);
 
@@ -74,33 +70,6 @@ function Dialog({ onClose }: { onClose: () => void }) {
 
   const onNext = (ev: FormEvent) => { ev.preventDefault(); if (validateStep1()) go(2); };
 
-  const onSend = async (ev: FormEvent) => {
-    ev.preventDefault();
-    if (ideas.trim().length < 3) { setErrors({ ideas: "Tell us a little about what you have in mind" }); return; }
-    setErrors({}); setBusy(true); setApiError(null);
-    try {
-      const res = await fetch("/api/enquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email, ideas, source: "booking", company }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { id?: string | null; error?: string; emailed?: boolean; stored?: boolean; emailDetail?: string };
-      if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again or call us.");
-      setMailNote(null);
-      if (data.emailed === false) {
-        // Server-side send was rejected; send the notification from the browser instead.
-        const fb = await sendFormSubmitFromBrowser({ _subject: `New enquiry: ${name}`, _replyto: email, name, email, phone: phone || "not given", ideas, source: "booking", reference: data.id ?? "not stored" });
-        if (!fb.ok && !data.stored) throw new Error(fb.message || "We couldn't send that right now. Please call us on 07494 280614.");
-        if (!fb.ok) setMailNote(`Email notification not confirmed. ${fb.message ? `FormSubmit said: "${fb.message}".` : ""} ${data.emailDetail ? `Server attempt: ${data.emailDetail}.` : ""} Your enquiry has been saved.`.replace(/\s+/g, " ").trim());
-        else if (fb.message) setMailNote(`FormSubmit: ${fb.message}`);
-      }
-      setEnquiryId(data.id ?? null);
-      go(3);
-    } catch (err) {
-      setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again or call us.");
-    } finally { setBusy(false); }
-  };
-
   const onFiles = (list: FileList | null) => {
     if (!list) return;
     const next = [...files];
@@ -115,38 +84,75 @@ function Dialog({ onClose }: { onClose: () => void }) {
     setApiError(errs.length ? errs.join(". ") : null);
   };
 
-  const onFinish = async () => {
-    if (!enquiryId) { go(4); return; }
-    setBusy(true); setApiError(null);
+  /**
+   * One click does everything: store the enquiry, upload any photos, then send a single email
+   * with the details and file links. Nothing is sent until this button is pressed, and nothing
+   * is left pending afterwards.
+   */
+  const onSend = async (ev: FormEvent) => {
+    ev.preventDefault();
+    if (ideas.trim().length < 3) { setErrors({ ideas: "Tell us a little about what you have in mind" }); return; }
+    setErrors({}); setApiError(null); setMailNote(null);
+    setBusy("sending");
     try {
-      // Upload straight to Vercel Blob from the browser (bypasses the 4.5 MB serverless body limit),
-      // then tell the API which files belong to this enquiry. Falls back to names-only if storage is unavailable.
-      const uploaded: { name: string; size: number; type: string; url?: string; pathname?: string }[] = [];
-      let storage = true;
-      const { upload } = await import("@vercel/blob/client");
-      for (const f of files) {
-        const meta = { name: f.name, size: f.size, type: f.type || "application/octet-stream" };
-        if (!storage) { uploaded.push(meta); continue; }
-        try {
-          const blob = await upload(`enquiries/${enquiryId}/${f.name}`, f, { access: "private", handleUploadUrl: `/api/enquiry/${enquiryId}/attachments`, multipart: false });
-          uploaded.push({ ...meta, url: blob.url, pathname: blob.pathname });
-        } catch { storage = false; uploaded.push(meta); }
+      // 1. Store the enquiry (email deferred so files can be included).
+      const res = await fetch("/api/enquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, email, ideas, source: "booking", company, notify: false }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { id?: string | null; error?: string; emailed?: boolean; stored?: boolean; deferred?: boolean; emailDetail?: string };
+      if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again or call us.");
+
+      const baseFields = { _subject: `New enquiry: ${name}`, _replyto: email, name, email, phone: phone || "not given", ideas, source: "booking" };
+
+      if (!data.id) {
+        // Database unavailable: the API has already tried to email; fall back from the browser if needed.
+        if (data.emailed === false) {
+          const fb = await sendFormSubmitFromBrowser({ ...baseFields, files: files.length ? files.map((f) => `${f.name} (not stored)`).join("\n") : "none", reference: "not stored" });
+          if (!fb.ok) throw new Error(fb.message || "We couldn't send that right now. Please call us on 07494 280614.");
+        }
+        go(3);
+        return;
       }
-      const res = await fetch(`/api/enquiry/${enquiryId}/attachments`, {
+
+      // 2. Upload photos straight to Blob storage (skipped gracefully if storage isn't configured).
+      const uploaded: { name: string; size: number; type: string; url?: string; pathname?: string }[] = [];
+      if (files.length) {
+        setBusy("uploading");
+        let storage = true;
+        const { upload } = await import("@vercel/blob/client");
+        for (const f of files) {
+          const meta = { name: f.name, size: f.size, type: f.type || "application/octet-stream" };
+          if (!storage) { uploaded.push(meta); continue; }
+          try {
+            const blob = await upload(`enquiries/${data.id}/${f.name}`, f, { access: "private", handleUploadUrl: `/api/enquiry/${data.id}/attachments`, multipart: false });
+            uploaded.push({ ...meta, url: blob.url, pathname: blob.pathname });
+          } catch { storage = false; uploaded.push(meta); }
+        }
+      }
+
+      // 3. Send the one notification email.
+      setBusy("sending");
+      const sendRes = await fetch(`/api/enquiry/${data.id}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attachments: uploaded }),
       });
-      const d = (await res.json().catch(() => ({}))) as { error?: string; emailed?: boolean; emailDetail?: string; mail?: { name: string; email: string; phone: string; files: string } };
-      if (!res.ok) throw new Error(d.error || "We couldn't attach those files. Your enquiry has still been sent.");
-      if (d.emailed === false && d.mail) {
-        // Server-side send rejected; send the inspiration email from the browser instead.
-        const fb = await sendFormSubmitFromBrowser({ _subject: `Inspiration for enquiry: ${d.mail.name}`, _replyto: d.mail.email, name: d.mail.name, email: d.mail.email, phone: d.mail.phone, reference: enquiryId, files: d.mail.files });
-        if (!fb.ok) setApiError(`Files saved, but the email notification wasn't confirmed${fb.message ? `: ${fb.message}` : ""}.`);
+      const sent = (await sendRes.json().catch(() => ({}))) as { emailed?: boolean; emailDetail?: string; mail?: Record<string, string>; error?: string };
+      if (!sendRes.ok) throw new Error(sent.error || "Something went wrong. Please try again or call us.");
+      if (sent.emailed === false && sent.mail) {
+        const fb = await sendFormSubmitFromBrowser(sent.mail);
+        if (fb.ok) {
+          fetch(`/api/enquiry/${data.id}/send`, { method: "PATCH" }).catch(() => undefined);
+          if (fb.message) setMailNote(`FormSubmit: ${fb.message}`);
+        } else {
+          setMailNote(`Your enquiry has been saved, but the email notification wasn't confirmed${fb.message ? ` (FormSubmit said: "${fb.message}")` : sent.emailDetail ? ` (${sent.emailDetail})` : ""}. We check saved enquiries too, or call us on 07494 280614.`);
+        }
       }
-      go(4);
+      go(3);
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : "We couldn't attach those files. Your enquiry has still been sent.");
+      setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again or call us.");
     } finally { setBusy(false); }
   };
 
@@ -164,7 +170,7 @@ function Dialog({ onClose }: { onClose: () => void }) {
           <button type="button" className="modal__close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="modal__dots" aria-hidden="true">
-          <span data-on="true" /><span data-on={step >= 2 ? "true" : "false"} /><span data-on={step >= 3 ? "true" : "false"} />
+          <span data-on="true" /><span data-on={step >= 2 ? "true" : "false"} />
         </div>
 
         {step === 1 && (
@@ -199,29 +205,14 @@ function Dialog({ onClose }: { onClose: () => void }) {
           <form className="modal__step" data-dir={dir} onSubmit={onSend} noValidate>
             <div className="field field--light">
               <label htmlFor="bk-ideas">What are you thinking of?</label>
-              <textarea id="bk-ideas" name="ideas" rows={5} required data-autofocus placeholder="e.g. A media wall for the living room, around 3m wide, with lit alcoves either side…" value={ideas} onChange={(e) => setIdeas(e.target.value)} aria-invalid={!!errors.ideas} aria-describedby={errors.ideas ? "bk-ideas-err" : undefined} />
+              <textarea id="bk-ideas" name="ideas" rows={4} required data-autofocus placeholder="e.g. A media wall for the living room, around 3m wide, with lit alcoves either side…" value={ideas} onChange={(e) => setIdeas(e.target.value)} aria-invalid={!!errors.ideas} aria-describedby={errors.ideas ? "bk-ideas-err" : undefined} />
               {err("ideas")}
             </div>
-            {apiError && <p className="field__err" role="alert">{apiError}</p>}
-            <div className="modal__btns">
-              <button type="button" className="pill pill--lg pill--outline-navy" style={{ padding: "0 22px" }} onClick={() => go(1, "back")}>← Back</button>
-              <button type="submit" className="pill pill--lg pill--navy grow" disabled={busy}>{busy ? "Sending…" : "Send to our team"}</button>
-            </div>
-          </form>
-        )}
-
-        {step === 3 && (
-          <div className="modal__step" data-dir={dir} style={{ gap: 20 }}>
-            <div className="modal__ok" role="status">
-              <span className="tick"><TickIcon /></span>
-              <p><strong>Sent to our team, thank you.</strong> We&apos;ll call or email within one working day.</p>
-            </div>
-            {mailNote && <p className="modal__mailnote" role="status">{mailNote}</p>}
             <label className="drop" htmlFor="bk-files">
               <UploadIcon />
-              <span className="t">Add photos, sketches or links to things you like</span>
+              <span className="t">Add photos, sketches or things you like</span>
               <span className="s">Images or PDFs · optional · up to {MAX_FILES} files, 10 MB each</span>
-              <input id="bk-files" type="file" multiple accept="image/*,.pdf,application/pdf" data-autofocus onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
+              <input id="bk-files" type="file" multiple accept="image/*,.pdf,application/pdf" onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} disabled={!!busy} />
             </label>
             {files.length > 0 && (
               <ul className="files" aria-label="Selected files">
@@ -229,25 +220,26 @@ function Dialog({ onClose }: { onClose: () => void }) {
                   <li key={`${f.name}-${f.size}`}>
                     <span>{f.name}</span>
                     <span className="sz">{fmtSize(f.size)}</span>
-                    <button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles(files.filter((_, j) => j !== i))}>×</button>
+                    <button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles(files.filter((_, j) => j !== i))} disabled={!!busy}>×</button>
                   </li>
                 ))}
               </ul>
             )}
             {apiError && <p className="field__err" role="alert">{apiError}</p>}
             <div className="modal__btns">
-              <button type="button" className="pill pill--lg pill--outline-navy" style={{ padding: "0 22px" }} onClick={onClose} disabled={busy}>{files.length ? "Cancel" : "Skip, I'm done"}</button>
-              {files.length > 0 && (
-                <button type="button" className="pill pill--lg pill--navy grow" onClick={onFinish} disabled={busy}>{busy ? "Uploading…" : "Send inspiration"}</button>
-              )}
+              <button type="button" className="pill pill--lg pill--outline-navy" style={{ padding: "0 22px" }} onClick={() => go(1, "back")} disabled={!!busy}>← Back</button>
+              <button type="submit" className="pill pill--lg pill--navy grow" disabled={!!busy}>
+                {busy === "uploading" ? "Uploading photos…" : busy === "sending" ? "Sending…" : "Send to our team"}
+              </button>
             </div>
-          </div>
+          </form>
         )}
 
-        {step === 4 && (
+        {step === 3 && (
           <div className="modal__done" role="status">
             <span className="tick tick--lg"><TickIcon size={26} /></span>
             <p>All received. We&apos;ll be in touch within one working day to arrange a visit.</p>
+            {mailNote && <p className="modal__mailnote">{mailNote}</p>}
             <button type="button" className="pill pill--lg pill--navy" data-autofocus onClick={onClose}>Done</button>
           </div>
         )}

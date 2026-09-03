@@ -59,7 +59,7 @@ Each item from `kbc-build-brief.md` §4 and where it is satisfied in this repo.
 | Item | Where |
 | --- | --- |
 | `POST /api/enquiry` zod → Neon → FormSubmit → 200 | `src/app/api/enquiry/route.ts`, schema in `src/lib/enquiry.ts`, DB in `src/db/`, email in `src/lib/formsubmit.ts`. |
-| Attachments route | `src/app/api/enquiry/[id]/attachments/route.ts` — Vercel Blob client-upload tokens + record/email step (see README for the rationale). |
-| Drizzle schema + migration SQL | `src/db/schema.ts`, `drizzle/0000_enquiries.sql`, `scripts/migrate.mjs`. |
+| Attachments | `src/app/api/enquiry/[id]/attachments/route.ts` issues Vercel Blob client-upload tokens and streams private files back; `src/app/api/enquiry/[id]/send/route.ts` records the files and sends the single notification email (see README). |
+| Drizzle schema + migration SQL | `src/db/schema.ts`, `drizzle/0000_enquiries.sql`, `drizzle/0001_notified_at.sql`, `scripts/migrate.mjs`. |
 | Honeypot + rate limit | `company` field (visually hidden, `tabindex=-1`) rejected server-side with a fake 200; `src/lib/ratelimit.ts` sliding window per IP → 429 with `Retry-After`. |
 | `DATABASE_URL` never client-side | Only read in `src/db/index.ts`, which imports `server-only`; no `NEXT_PUBLIC_` prefix. |

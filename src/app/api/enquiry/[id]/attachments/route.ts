@@ -7,25 +7,12 @@ import { getDb, schema } from "@/db";
 import { ensureSchema } from "@/db/bootstrap";
 import type { Attachment } from "@/db/schema";
 import { ACCEPTED_TYPES, MAX_FILES, MAX_FILE_BYTES } from "@/lib/enquiry";
-import { sendFormSubmit } from "@/lib/formsubmit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
-import { SITE_URL } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ATTACH_WINDOW_MS = 24 * 60 * 60 * 1000;
-const BLOB_HOST = /\.blob\.vercel-storage\.com$/;
-
-const attachSchema = z.object({
-  attachments: z.array(z.object({
-    name: z.string().min(1).max(255),
-    size: z.number().int().nonnegative().max(MAX_FILE_BYTES),
-    type: z.string().max(100),
-    url: z.string().url().optional(),
-    pathname: z.string().max(400).optional(),
-  })).min(1).max(MAX_FILES),
-});
 
 async function findRecentEnquiry(id: string) {
   await ensureSchema();
@@ -71,9 +58,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
  * Two bodies are accepted:
  *  1. Vercel Blob client-upload protocol ({ type, payload }): issues a scoped upload token so the
  *     browser can upload directly to Blob storage (bypasses the 4.5 MB serverless body limit).
- *  2. { attachments: [{ name, size, type, url? }] }: records the files against the enquiry and
- *     emails the links to the team. `url` is optional so the flow degrades to names-only when no
- *     BLOB_READ_WRITE_TOKEN is configured.
+ *  2. (moved) recording files + the notification email now live in POST /api/enquiry/[id]/send.
  */
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -117,43 +102,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     }
   }
 
-  // --- 2. Record attachments + email links --------------------------------------------------
-  const parsed = attachSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Please check the files" }, { status: 400 });
-  for (const a of parsed.data.attachments) {
-    if (a.url && !BLOB_HOST.test(new URL(a.url).hostname)) return NextResponse.json({ error: "Invalid attachment URL" }, { status: 400 });
-  }
-
-  let enquiry: typeof schema.enquiries.$inferSelect | null = null;
-  try { enquiry = await findRecentEnquiry(id); } catch (e) { console.error("[attachments] DB lookup failed:", e); }
-  if (!enquiry) return NextResponse.json({ error: "Enquiry not found" }, { status: 404 });
-
-  let saved: Attachment[] = enquiry.attachments;
-  try { saved = await appendAttachments(id, parsed.data.attachments); }
-  catch (e) { console.error("[attachments] DB update failed:", e); }
-
-  const linkFor = (a: { name: string; url?: string; pathname?: string }) =>
-    a.pathname ? `${SITE_URL}/api/enquiry/${id}/attachments?file=${encodeURIComponent(a.pathname)}` : a.url;
-  const lines = parsed.data.attachments.map((a) => { const link = linkFor(a); return link ? `${a.name}: ${link}` : `${a.name} (${Math.round(a.size / 1024)} KB, not stored)`; });
-  const mail = await sendFormSubmit({
-    _subject: `Inspiration for enquiry: ${enquiry.name}`,
-    _replyto: enquiry.email,
-    name: enquiry.name,
-    email: enquiry.email,
-    phone: enquiry.phone ?? "not given",
-    reference: id,
-    attachments: lines.join("\n"),
-  });
-  if (!mail.ok) console.error("[attachments] FormSubmit failed:", mail.detail);
-
-  return NextResponse.json({
-    ok: true,
-    attachments: saved,
-    emailed: mail.ok,
-    emailDetail: mail.ok ? undefined : mail.detail?.slice(0, 200),
-    // For the browser-side FormSubmit fallback.
-    mail: { name: enquiry.name, email: enquiry.email, phone: enquiry.phone ?? "not given", files: lines.join("\n") },
-  });
+  return NextResponse.json({ error: "Use POST /api/enquiry/[id]/send to record files" }, { status: 400 });
 }
 
 async function appendAttachments(id: string, incoming: Attachment[]): Promise<Attachment[]> {

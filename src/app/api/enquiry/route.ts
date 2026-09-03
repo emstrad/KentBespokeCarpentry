@@ -41,6 +41,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: first?.message ?? "Please check the form", issues: parsed.error.issues }, { status: 400 });
   }
   const { name, email, phone, ideas, source } = parsed.data;
+  // The booking modal defers the email to its final step so files can be included in one message.
+  const deferEmail = parsed.data.notify === false;
 
   let id: string | null = null;
   let stored = false;
@@ -55,6 +57,8 @@ export async function POST(req: Request) {
     dbError = e instanceof Error ? e.message : String(e);
     console.error("[enquiry] DB insert failed:", dbError);
   }
+
+  if (deferEmail && stored) return NextResponse.json({ id, ok: true, stored, emailed: false, deferred: true });
 
   const mail = await sendFormSubmit({
     _subject: `New enquiry: ${name}`,

@@ -6,6 +6,8 @@ export const enquirySchema = z.object({
   phone: z.string().trim().max(40).optional().or(z.literal("")),
   ideas: z.string().trim().max(5000).optional().or(z.literal("")),
   source: z.enum(["booking", "contact"]),
+  /** When false, the email is sent later by POST /api/enquiry/[id]/send (booking modal). */
+  notify: z.boolean().optional(),
   /** Honeypot: must be empty. Bots that autofill every field trip it. */
   company: z.string().max(0).optional().or(z.literal("")),
 });

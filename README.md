@@ -83,8 +83,8 @@ and a failed server-side send is logged in the Vercel function logs with FormSub
 ## Enquiry data flow
 
 ```
-Booking modal step 2 / Contact form
-  └─ POST /api/enquiry  { name, phone, email, ideas, source, company(honeypot) }
+Contact page form
+  └─ POST /api/enquiry  { name, phone, email, ideas, source: "contact", company(honeypot) }
        ├─ rate limit (5 per 10 min per IP)  → 429
        ├─ honeypot filled                    → fake 200, nothing stored
        ├─ zod validation                     → 400
@@ -92,19 +92,19 @@ Booking modal step 2 / Contact form
        ├─ POST FormSubmit                    (email)
        └─ 200 { id, stored, emailed }        (502 only if both DB and email fail)
 
-Booking modal step 3 (optional inspiration files)
-  ├─ browser uploads each file straight to Vercel Blob using a scoped token issued by
+Booking modal (one "Send to our team" click does all of this)
+  ├─ POST /api/enquiry { …, source: "booking", notify: false }   stores the row, no email yet
+  ├─ each photo uploads straight to Vercel Blob (private) using a scoped token issued by
   │  POST /api/enquiry/[id]/attachments (Blob client-upload protocol)
-  └─ POST /api/enquiry/[id]/attachments { attachments: [{ name, size, type, url? }] }
-       ├─ enquiry must exist and be < 24h old
-       ├─ URLs must be on *.public.blob.vercel-storage.com
-       ├─ merges into enquiries.attachments (deduped, max 8)
-       └─ emails the links via FormSubmit ("Inspiration for enquiry — {name}")
-```
+  └─ POST /api/enquiry/[id]/send { attachments: [...] }
+       ├─ merges the files into enquiries.attachments (max 8)
+       ├─ sends ONE email: details + a link per file
+       │  (links go to GET /api/enquiry/[id]/attachments?file=…, which streams from the store)
+       └─ sets enquiries.notified_at
 
-**Private store:** the Blob store can be left *private*. Uploads are made with `access: "private"`
-and the email links point at `GET /api/enquiry/[id]/attachments?file=…`, which streams the file
-from the store. Links only work for paths under that enquiry's folder.
+If the server-side FormSubmit call is rejected, the browser sends the same email directly
+(`src/lib/formsubmitClient.ts`) and PATCHes /send to mark it notified.
+```
 
 **Why client-side Blob upload:** Vercel serverless functions cap request bodies at 4.5 MB,
 which is smaller than one phone photo. Uploading from the browser with a server-issued token
