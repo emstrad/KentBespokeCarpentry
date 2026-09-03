@@ -318,9 +318,14 @@ img { display: block; }
 }
 
 /* ---------- Scroll-driven animations ---------- */
+/* The clipping containers use overflow:hidden, which makes them scroll containers, so an anonymous
+   view() timeline on the image would measure against the card instead of the page. Naming the
+   timeline on the container (whose scroller is the viewport) keeps the drift tied to page scroll. */
 @supports (animation-timeline: view()) {
-  .hero__img { animation: kbcHero linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
-  [data-drift] img { scale: 1.2; animation: kbcDrift linear both; animation-timeline: view(); }
+  .hero__card { view-timeline-name: --kbc-hero; }
+  .hero__img { animation: kbcHero linear both; animation-timeline: --kbc-hero; animation-range: exit 0% exit 100%; }
+  [data-drift] { view-timeline-name: --kbc-drift; }
+  [data-drift] img { scale: 1.2; animation: kbcDrift linear both; animation-timeline: --kbc-drift; }
 }
 /* Fallback for browsers without scroll-driven animations: Parallax.tsx writes --p / --hp on scroll. */
 @supports not (animation-timeline: view()) {
