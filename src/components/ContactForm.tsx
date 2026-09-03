@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { sendFormSubmitFromBrowser } from "@/lib/formsubmitClient";
 
 type State = { status: "idle" | "busy" | "sent" | "error"; message?: string };
 
@@ -22,8 +23,13 @@ export function ContactForm() {
           ideas: fd.get("message") ?? "", source: "contact", company: fd.get("company") ?? "",
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; emailed?: boolean; stored?: boolean; id?: string | null };
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again or call us.");
+      if (data.emailed === false) {
+        const name = String(fd.get("name") ?? ""), email = String(fd.get("email") ?? "");
+        const fb = await sendFormSubmitFromBrowser({ _subject: `New enquiry: ${name}`, _replyto: email, name, email, phone: String(fd.get("phone") || "not given"), ideas: String(fd.get("message") || "not given"), source: "contact", reference: data.id ?? "not stored" });
+        if (!fb.ok && !data.stored) throw new Error(fb.message || "We couldn't send that right now. Please call us on 07494 280614.");
+      }
       form.reset();
       setState({ status: "sent", message: "Thanks, we’ll be in touch within one working day." });
     } catch (err) {

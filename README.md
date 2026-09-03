@@ -66,7 +66,13 @@ FormSubmit requires the destination address to be confirmed before it forwards a
 3. Click it. Every subsequent submission is delivered immediately.
 
 Until activated, the API still stores the enquiry in Neon and returns 200, so no lead is
-lost; the notification email just won't arrive. Emails use `_template: table`,
+lost; the notification email just won't arrive.
+
+FormSubmit sits behind bot protection that can reject server-to-server calls. If the
+server-side send is rejected, the browser sends the same notification directly to FormSubmit
+(`src/lib/formsubmitClient.ts`), which is the usage FormSubmit is designed for.
+`GET /api/enquiry` reports the live configuration (database, blob, endpoint) without secrets,
+and a failed server-side send is logged in the Vercel function logs with FormSubmit's reply. Emails use `_template: table`,
 `_replyto` = the enquirer's address, `_subject: "New enquiry — {name}"`, `_captcha: false`.
 
 ## Enquiry data flow

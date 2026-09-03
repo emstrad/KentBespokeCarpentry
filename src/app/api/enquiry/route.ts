@@ -8,6 +8,17 @@ import { clientIp, rateLimit } from "@/lib/ratelimit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** GET /api/enquiry: configuration diagnostics (no secrets). */
+export async function GET() {
+  return NextResponse.json({
+    databaseConfigured: !!process.env.DATABASE_URL,
+    blobConfigured: !!process.env.BLOB_READ_WRITE_TOKEN,
+    formsubmitEndpoint: process.env.FORMSUBMIT_ENDPOINT?.trim() || "(default) https://formsubmit.co/ajax/sales@kentbespokecarpentry.co.uk",
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL?.trim() || "(default) https://www.kentbespokecarpentry.co.uk",
+    vercelEnv: process.env.VERCEL_ENV ?? null,
+  });
+}
+
 /**
  * POST /api/enquiry
  * validate (zod) → insert into Neon `enquiries` → forward to FormSubmit → 200 { id }
@@ -63,5 +74,5 @@ export async function POST(req: Request) {
       detail: { database: dbError?.slice(0, 200) ?? "unknown", email: mail.detail?.slice(0, 200) ?? "unknown" },
     }, { status: 502 });
   }
-  return NextResponse.json({ id, ok: true, stored, emailed: mail.ok });
+  return NextResponse.json({ id, ok: true, stored, emailed: mail.ok, emailDetail: mail.ok ? undefined : mail.detail?.slice(0, 200) });
 }
