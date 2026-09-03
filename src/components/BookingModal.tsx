@@ -145,9 +145,9 @@ function Dialog({ onClose }: { onClose: () => void }) {
         const fb = await sendFormSubmitFromBrowser(sent.mail);
         if (fb.ok) {
           fetch(`/api/enquiry/${data.id}/send`, { method: "PATCH" }).catch(() => undefined);
-          if (fb.message) setMailNote(`FormSubmit: ${fb.message}`);
         } else {
-          setMailNote(`Your enquiry has been saved, but the email notification wasn't confirmed${fb.message ? ` (FormSubmit said: "${fb.message}")` : sent.emailDetail ? ` (${sent.emailDetail})` : ""}. We check saved enquiries too, or call us on 07494 280614.`);
+          console.warn("[enquiry] email not confirmed:", fb.message ?? sent.emailDetail);
+          setMailNote("Your enquiry has been saved. If you don't hear from us within one working day, please call 07494 280614.");
         }
       }
       go(3);

@@ -30,8 +30,7 @@ export function ContactForm() {
         const name = String(fd.get("name") ?? ""), email = String(fd.get("email") ?? "");
         const fb = await sendFormSubmitFromBrowser({ _subject: `New enquiry: ${name}`, _replyto: email, name, email, phone: String(fd.get("phone") || "not given"), ideas: String(fd.get("message") || "not given"), source: "contact", reference: data.id ?? "not stored" });
         if (!fb.ok && !data.stored) throw new Error(fb.message || "We couldn't send that right now. Please call us on 07494 280614.");
-        if (fb.message) note = ` (FormSubmit: ${fb.message})`;
-        else if (!fb.ok && data.emailDetail) note = ` (email not confirmed: ${data.emailDetail})`;
+        if (!fb.ok) { console.warn("[enquiry] email not confirmed:", fb.message ?? data.emailDetail); note = " If you don't hear from us within one working day, please call 07494 280614."; }
       }
       form.reset();
       setState({ status: "sent", message: `Thanks, we’ll be in touch within one working day.${note}` });
