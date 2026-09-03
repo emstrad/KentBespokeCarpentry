@@ -18,7 +18,7 @@ export default function OgImage() {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 28, opacity: 0.9 }}>
           <span>07494 280614</span>
-          <span>kentbespokecarpentry.co.uk</span>
+          <span>www.kentbespokecarpentry.co.uk</span>
         </div>
       </div>
     ),

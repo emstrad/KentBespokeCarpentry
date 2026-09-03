@@ -1,10 +1,12 @@
-const DEFAULT_SITE_URL = "https://kentbespokecarpentry.co.uk";
+const DEFAULT_SITE_URL = "https://www.kentbespokecarpentry.co.uk";
 
 /**
  * Canonical origin for metadata, sitemap, robots and JSON-LD.
  * Uses NEXT_PUBLIC_SITE_URL only when it is a valid absolute URL; otherwise the live domain.
- * Deliberately never falls back to VERCEL_URL, so preview/fork deployments still declare
- * kentbespokecarpentry.co.uk as canonical instead of a *.vercel.app host.
+ * The www host is the primary domain in Vercel (the bare domain 308-redirects to it), so every
+ * canonical, sitemap and JSON-LD URL uses www to avoid pointing search engines at a redirect.
+ * Deliberately never falls back to VERCEL_URL, so preview/fork deployments still declare the
+ * live domain as canonical instead of a *.vercel.app host.
  */
 function resolveSiteUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();

@@ -99,7 +99,7 @@ img { display: block; }
 }
 .header[data-nav="hidden"] { transform: translateY(-100%); }
 .header[data-menu-open="open"] { color: #fff; }
-.header__logo { display: flex; align-items: center; gap: 12px; min-height: 44px; border-radius: 8px; padding: 2px 8px; margin-left: -8px; transition: background 0.3s; }
+.header__logo { display: flex; align-items: center; gap: 12px; min-height: 44px; }
 .header__logo img { height: 52px; width: auto; display: block; }
 .header__logo .logo-white { display: none; }
 .header[data-menu-open="open"] .logo-navy { display: none; }
@@ -109,7 +109,6 @@ img { display: block; }
 .header[data-menu-open="open"] .header__book { background: #fff; color: var(--navy); }
 .header__menu-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: 100px; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; color: inherit; transition: background 0.3s; }
 /* Once scrolled, give the transparent header's controls a frosted white backing so they stay legible over photos. */
-.header[data-scrolled="true"]:not([data-menu-open="open"]) .header__logo,
 .header[data-scrolled="true"]:not([data-menu-open="open"]) .header__phone,
 .header[data-scrolled="true"]:not([data-menu-open="open"]) .header__menu-btn { background: rgba(255,255,255,0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .header__menu-icon { display: inline-block; font-size: 26px; font-weight: 300; line-height: 1; transition: transform 0.3s var(--ease-nav); }
