@@ -38,7 +38,7 @@ Other scripts: `npm run build`, `npm start`, `npm run typecheck`, `npm run lint`
 | --- | --- | --- |
 | `DATABASE_URL` | yes | Neon connection string. Server-only; never imported by client code (`src/db/index.ts` is marked `server-only`). |
 | `FORMSUBMIT_ENDPOINT` | yes | `https://formsubmit.co/ajax/sales@kentbespokecarpentry.co.uk` |
-| `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata, sitemap, robots and JSON-LD. Defaults to `https://kentbespokecarpentry.co.uk`; an empty or malformed value is ignored rather than failing the build. Preview deployments (`VERCEL_ENV` ≠ `production`) are served with `X-Robots-Tag: noindex`. |
+| `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata, sitemap, robots and JSON-LD. Defaults to `https://www.kentbespokecarpentry.co.uk` (the primary domain in Vercel; the bare domain redirects to it); an empty or malformed value is ignored rather than failing the build. Preview deployments (`VERCEL_ENV` ≠ `production`) are served with `X-Robots-Tag: noindex`. |
 | `BLOB_READ_WRITE_TOKEN` | optional | Enables inspiration-file storage in Vercel Blob. Auto-set when a Blob store is linked to the Vercel project. Without it, the booking modal still works and file *names* are emailed instead of links. |
 
 ## Neon migration
@@ -111,8 +111,10 @@ needed.
    This sets `BLOB_READ_WRITE_TOKEN`.
 4. Run the migration once against the production database (`npm run db:migrate` locally
    with the production `DATABASE_URL`, or paste the SQL in the Neon console).
-5. Deploy. Add the custom domain `kentbespokecarpentry.co.uk` under *Domains* and set
-   `NEXT_PUBLIC_SITE_URL` to match.
+5. Deploy. Under *Domains* add both `www.kentbespokecarpentry.co.uk` (Production) and
+   `kentbespokecarpentry.co.uk` (308 redirect to www). `NEXT_PUBLIC_SITE_URL` can be left unset
+   or set to `https://www.kentbespokecarpentry.co.uk`; keep it on the www host so canonical URLs
+   never point at a redirect.
 6. Submit one enquiry and click the FormSubmit activation link (see above).
 
 ## Project layout
