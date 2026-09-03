@@ -9,7 +9,11 @@ const nextConfig: NextConfig = {
     imageSizes: [96, 128, 256, 384, 512],
   },
   async headers() {
+    // Keep Vercel preview/branch deployments out of search indexes; only the production
+    // deployment on kentbespokecarpentry.co.uk should be indexed.
+    const isPreview = !!process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production";
     return [
+      ...(isPreview ? [{ source: "/(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }] : []),
       {
         source: "/(.*)",
         headers: [

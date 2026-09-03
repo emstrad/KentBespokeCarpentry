@@ -1,4 +1,22 @@
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://kentbespokecarpentry.co.uk").replace(/\/$/, "");
+const DEFAULT_SITE_URL = "https://kentbespokecarpentry.co.uk";
+
+/**
+ * Canonical origin for metadata, sitemap, robots and JSON-LD.
+ * Uses NEXT_PUBLIC_SITE_URL only when it is a valid absolute URL; otherwise the live domain.
+ * Deliberately never falls back to VERCEL_URL, so preview/fork deployments still declare
+ * kentbespokecarpentry.co.uk as canonical instead of a *.vercel.app host.
+ */
+function resolveSiteUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!raw) return DEFAULT_SITE_URL;
+  try {
+    return new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`).origin;
+  } catch {
+    return DEFAULT_SITE_URL;
+  }
+}
+
+export const SITE_URL = resolveSiteUrl();
 
 export const NAP = {
   name: "Kent Bespoke Carpentry Ltd",

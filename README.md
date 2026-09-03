@@ -38,7 +38,7 @@ Other scripts: `npm run build`, `npm start`, `npm run typecheck`, `npm run lint`
 | --- | --- | --- |
 | `DATABASE_URL` | yes | Neon connection string. Server-only; never imported by client code (`src/db/index.ts` is marked `server-only`). |
 | `FORMSUBMIT_ENDPOINT` | yes | `https://formsubmit.co/ajax/sales@kentbespokecarpentry.co.uk` |
-| `NEXT_PUBLIC_SITE_URL` | yes | Canonical origin used in metadata, sitemap, robots and JSON-LD. |
+| `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata, sitemap, robots and JSON-LD. Defaults to `https://kentbespokecarpentry.co.uk`; an empty or malformed value is ignored rather than failing the build. Preview deployments (`VERCEL_ENV` ≠ `production`) are served with `X-Robots-Tag: noindex`. |
 | `BLOB_READ_WRITE_TOKEN` | optional | Enables inspiration-file storage in Vercel Blob. Auto-set when a Blob store is linked to the Vercel project. Without it, the booking modal still works and file *names* are emailed instead of links. |
 
 ## Neon migration
