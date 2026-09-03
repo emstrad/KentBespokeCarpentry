@@ -1,3 +1,4 @@
+import { get } from "@vercel/blob";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { and, eq, gt } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -8,12 +9,13 @@ import type { Attachment } from "@/db/schema";
 import { ACCEPTED_TYPES, MAX_FILES, MAX_FILE_BYTES } from "@/lib/enquiry";
 import { sendFormSubmit } from "@/lib/formsubmit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { SITE_URL } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ATTACH_WINDOW_MS = 24 * 60 * 60 * 1000;
-const BLOB_HOST = /\.public\.blob\.vercel-storage\.com$/;
+const BLOB_HOST = /\.blob\.vercel-storage\.com$/;
 
 const attachSchema = z.object({
   attachments: z.array(z.object({
@@ -21,6 +23,7 @@ const attachSchema = z.object({
     size: z.number().int().nonnegative().max(MAX_FILE_BYTES),
     type: z.string().max(100),
     url: z.string().url().optional(),
+    pathname: z.string().max(400).optional(),
   })).min(1).max(MAX_FILES),
 });
 
@@ -30,6 +33,36 @@ async function findRecentEnquiry(id: string) {
   const since = new Date(Date.now() - ATTACH_WINDOW_MS);
   const [row] = await db.select().from(schema.enquiries).where(and(eq(schema.enquiries.id, id), gt(schema.enquiries.createdAt, since))).limit(1);
   return row ?? null;
+}
+
+/**
+ * GET /api/enquiry/[id]/attachments?file=<pathname>
+ * Streams an uploaded file from the (private) Blob store. Links in the notification email point
+ * here so the team can open attachments without the store being public.
+ */
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  if (!z.string().uuid().safeParse(id).success) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const pathname = new URL(req.url).searchParams.get("file") ?? "";
+  if (!pathname.startsWith(`enquiries/${id}/`) || pathname.includes("..")) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return NextResponse.json({ error: "File storage is not configured" }, { status: 503 });
+  try {
+    const blob = await get(pathname, { access: "private" });
+    if (!blob || blob.statusCode !== 200 || !blob.stream) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const name = pathname.split("/").pop() ?? "file";
+    return new Response(blob.stream, {
+      headers: {
+        "Content-Type": blob.blob.contentType || "application/octet-stream",
+        "Content-Length": String(blob.blob.size),
+        "Content-Disposition": `inline; filename="${name.replace(/"/g, "")}"`,
+        "Cache-Control": "private, max-age=3600",
+        "X-Robots-Tag": "noindex",
+      },
+    });
+  } catch (e) {
+    console.error("[attachments] GET failed:", e);
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 }
 
 /**
@@ -74,7 +107,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         // Fires from Vercel once the upload lands (production only). The browser also POSTs the final
         // list below, so this is a belt-and-braces record; writes are deduped by URL.
         onUploadCompleted: async ({ blob }) => {
-          try { await appendAttachments(id, [{ name: blob.pathname.split("/").pop() ?? "file", size: 0, type: blob.contentType ?? "", url: blob.url }]); }
+          try { await appendAttachments(id, [{ name: blob.pathname.split("/").pop() ?? "file", size: 0, type: blob.contentType ?? "", url: blob.url, pathname: blob.pathname }]); }
           catch (e) { console.error("[attachments] onUploadCompleted:", e); }
         },
       });
@@ -99,7 +132,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   try { saved = await appendAttachments(id, parsed.data.attachments); }
   catch (e) { console.error("[attachments] DB update failed:", e); }
 
-  const lines = parsed.data.attachments.map((a) => (a.url ? `${a.name}: ${a.url}` : `${a.name} (${Math.round(a.size / 1024)} KB, not stored)`));
+  const linkFor = (a: { name: string; url?: string; pathname?: string }) =>
+    a.pathname ? `${SITE_URL}/api/enquiry/${id}/attachments?file=${encodeURIComponent(a.pathname)}` : a.url;
+  const lines = parsed.data.attachments.map((a) => { const link = linkFor(a); return link ? `${a.name}: ${link}` : `${a.name} (${Math.round(a.size / 1024)} KB, not stored)`; });
   const mail = await sendFormSubmit({
     _subject: `Inspiration for enquiry: ${enquiry.name}`,
     _replyto: enquiry.email,
@@ -111,7 +146,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   });
   if (!mail.ok) console.error("[attachments] FormSubmit failed:", mail.detail);
 
-  return NextResponse.json({ ok: true, attachments: saved, emailed: mail.ok });
+  return NextResponse.json({
+    ok: true,
+    attachments: saved,
+    emailed: mail.ok,
+    emailDetail: mail.ok ? undefined : mail.detail?.slice(0, 200),
+    // For the browser-side FormSubmit fallback.
+    mail: { name: enquiry.name, email: enquiry.email, phone: enquiry.phone ?? "not given", files: lines.join("\n") },
+  });
 }
 
 async function appendAttachments(id: string, incoming: Attachment[]): Promise<Attachment[]> {
@@ -120,7 +162,7 @@ async function appendAttachments(id: string, incoming: Attachment[]): Promise<At
   const existing = row?.attachments ?? [];
   const merged = [...existing];
   for (const a of incoming) {
-    const dup = merged.some((m) => (a.url && m.url === a.url) || (!a.url && m.name === a.name && m.size === a.size));
+    const dup = merged.some((m) => (a.pathname && m.pathname === a.pathname) || (a.url && m.url === a.url) || (!a.url && !a.pathname && m.name === a.name && m.size === a.size));
     if (!dup) merged.push(a);
   }
   const next = merged.slice(0, MAX_FILES);

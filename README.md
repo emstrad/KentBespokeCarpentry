@@ -102,6 +102,10 @@ Booking modal step 3 (optional inspiration files)
        └─ emails the links via FormSubmit ("Inspiration for enquiry — {name}")
 ```
 
+**Private store:** the Blob store can be left *private*. Uploads are made with `access: "private"`
+and the email links point at `GET /api/enquiry/[id]/attachments?file=…`, which streams the file
+from the store. Links only work for paths under that enquiry's folder.
+
 **Why client-side Blob upload:** Vercel serverless functions cap request bodies at 4.5 MB,
 which is smaller than one phone photo. Uploading from the browser with a server-issued token
 avoids that limit; the route still gates every token behind a valid, recent enquiry id and

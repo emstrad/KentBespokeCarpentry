@@ -121,15 +121,15 @@ function Dialog({ onClose }: { onClose: () => void }) {
     try {
       // Upload straight to Vercel Blob from the browser (bypasses the 4.5 MB serverless body limit),
       // then tell the API which files belong to this enquiry. Falls back to names-only if storage is unavailable.
-      const uploaded: { name: string; size: number; type: string; url?: string }[] = [];
+      const uploaded: { name: string; size: number; type: string; url?: string; pathname?: string }[] = [];
       let storage = true;
       const { upload } = await import("@vercel/blob/client");
       for (const f of files) {
         const meta = { name: f.name, size: f.size, type: f.type || "application/octet-stream" };
         if (!storage) { uploaded.push(meta); continue; }
         try {
-          const blob = await upload(`enquiries/${enquiryId}/${f.name}`, f, { access: "public", handleUploadUrl: `/api/enquiry/${enquiryId}/attachments`, multipart: false });
-          uploaded.push({ ...meta, url: blob.url });
+          const blob = await upload(`enquiries/${enquiryId}/${f.name}`, f, { access: "private", handleUploadUrl: `/api/enquiry/${enquiryId}/attachments`, multipart: false });
+          uploaded.push({ ...meta, url: blob.url, pathname: blob.pathname });
         } catch { storage = false; uploaded.push(meta); }
       }
       const res = await fetch(`/api/enquiry/${enquiryId}/attachments`, {
@@ -137,7 +137,13 @@ function Dialog({ onClose }: { onClose: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attachments: uploaded }),
       });
-      if (!res.ok) { const d = (await res.json().catch(() => ({}))) as { error?: string }; throw new Error(d.error || "We couldn't attach those files. Your enquiry has still been sent."); }
+      const d = (await res.json().catch(() => ({}))) as { error?: string; emailed?: boolean; emailDetail?: string; mail?: { name: string; email: string; phone: string; files: string } };
+      if (!res.ok) throw new Error(d.error || "We couldn't attach those files. Your enquiry has still been sent.");
+      if (d.emailed === false && d.mail) {
+        // Server-side send rejected; send the inspiration email from the browser instead.
+        const fb = await sendFormSubmitFromBrowser({ _subject: `Inspiration for enquiry: ${d.mail.name}`, _replyto: d.mail.email, name: d.mail.name, email: d.mail.email, phone: d.mail.phone, reference: enquiryId, files: d.mail.files });
+        if (!fb.ok) setApiError(`Files saved, but the email notification wasn't confirmed${fb.message ? `: ${fb.message}` : ""}.`);
+      }
       go(4);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "We couldn't attach those files. Your enquiry has still been sent.");

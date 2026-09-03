@@ -7,6 +7,8 @@ export type Attachment = {
   size: number;
   type: string;
   url?: string;
+  /** Blob pathname (enquiries/<id>/<file>), used to stream private blobs via the site. */
+  pathname?: string;
 };
 
 export const enquiries = pgTable("enquiries", {
