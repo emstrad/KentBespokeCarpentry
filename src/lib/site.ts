@@ -27,8 +27,8 @@ export const NAP = {
   email: "sales@kentbespokecarpentry.co.uk",
   emailHref: "mailto:sales@kentbespokecarpentry.co.uk",
   area: "Kent",
-  facebook: "https://facebook.com",
-  instagram: "https://instagram.com",
+  facebook: "https://www.facebook.com/share/1DVn67btQs/?mibextid=wwXIfr",
+  instagram: "https://www.instagram.com/kentbespokecarpentry?igsi=MTVzc3Z6ZGUwemU1Nw==",
 } as const;
 
 export const NAVY = "#0e2140";
@@ -66,7 +66,7 @@ export type Service = { title: string; body: string; bg: string; fg: string };
 
 export const SERVICES: Service[] = [
   { title: "Media walls", body: "Recessed TV and fireplace walls with lit display niches, hidden cabling and painted or veneered finishes, built to suit the room rather than the other way round.", bg: "#0e2140", fg: "#fff" },
-  { title: "Staircases & balustrades", body: "New softwood or hardwood flights, replacement treads and risers, and glass or timber balustrades — measured on site and made to fit awkward landings.", bg: "#fff", fg: "#0a0a0a" },
+  { title: "Staircases & balustrades", body: "New softwood or hardwood flights, replacement treads and risers, and glass or timber balustrades, measured on site and made to fit awkward landings.", bg: "#fff", fg: "#0a0a0a" },
   { title: "Pergolas & garden rooms", body: "Structural timber pergolas, covered outdoor kitchens and bars, decking and slatted screens. Treated timber, proper footings, built to stay square.", bg: "#f2f2f0", fg: "#0a0a0a" },
   { title: "Fitted wardrobes & alcoves", body: "Floor-to-ceiling wardrobes, alcove units and under-stair storage designed around what you actually need to put in them.", bg: "#fff", fg: "#0a0a0a" },
   { title: "Doors, skirting & architrave", body: "Second-fix carpentry done properly: hung doors that close, mitres that meet, and mouldings that match the rest of the house.", bg: "#0a0a0a", fg: "#fff" },

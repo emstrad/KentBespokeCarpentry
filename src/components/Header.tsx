@@ -58,7 +58,7 @@ export function Header() {
   return (
     <>
       <header className="header" data-nav={hidden ? "hidden" : "shown"} data-menu-open={menuState}>
-        <Link href="/" className="header__logo" aria-label="Kent Bespoke Carpentry — home">
+        <Link href="/" className="header__logo" aria-label="Kent Bespoke Carpentry, home">
           <Image className="logo-navy" src="/assets/logo-navy.png" alt="Kent Bespoke Carpentry Ltd" width={104} height={52} priority />
           <Image className="logo-white" src="/assets/logo-white.png" alt="" width={104} height={52} />
         </Link>

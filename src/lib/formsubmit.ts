@@ -2,7 +2,7 @@ import "server-only";
 
 /**
  * Forward an enquiry to FormSubmit (formsubmit.co), which emails sales@kentbespokecarpentry.co.uk.
- * First ever submission triggers a one-off activation email — see README.
+ * First ever submission triggers a one-off activation email, see README.
  */
 export async function sendFormSubmit(fields: Record<string, string>): Promise<{ ok: boolean; detail?: string }> {
   const endpoint = process.env.FORMSUBMIT_ENDPOINT;

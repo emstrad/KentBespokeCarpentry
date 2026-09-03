@@ -3,19 +3,19 @@ import Link from "next/link";
 
 const STEPS = [
   {
-    n: "01 — Design", tone: "slide--navy", src: "/assets/media-wall.jpg", alt: "Bespoke media wall with lit display niches",
+    n: "01 / Design", tone: "slide--navy", src: "/assets/media-wall.jpg", alt: "Bespoke media wall with lit display niches",
     title: "Measured, drawn and agreed before we cut a thing.",
     copy: "Every job starts with a site visit and a drawing. We work through proportions, materials and finish with you, so the quote is fixed and there are no surprises later.",
     cta: { href: "/about", label: "How we work", cls: "pill pill--outline-white-soft" },
   },
   {
-    n: "02 — Build", tone: "slide--white", src: "/assets/pergola-octagon.jpg", alt: "Octagonal pergola frame under construction",
+    n: "02 / Build", tone: "slide--white", src: "/assets/pergola-octagon.jpg", alt: "Octagonal pergola frame under construction",
     title: "Made by carpenters who care about the joins nobody sees.",
-    copy: "Structural timber, hardwood or painted MDF — we build in the workshop where we can and on site where we must, to the same standard either way.",
+    copy: "Structural timber, hardwood or painted MDF: we build in the workshop where we can and on site where we must, to the same standard either way.",
     cta: { href: "/projects", label: "See recent builds", cls: "pill pill--navy" },
   },
   {
-    n: "03 — Install", tone: "slide--black", src: "/assets/fireplace-wall.jpg", alt: "Finished fireplace media wall with lit alcoves",
+    n: "03 / Install", tone: "slide--black", src: "/assets/fireplace-wall.jpg", alt: "Finished fireplace media wall with lit alcoves",
     title: "Fitted cleanly, finished properly, left ready to live with.",
     copy: "Tidy site, protected floors, and a final walk-round with you before we call it done. We don't leave until it's right.",
     cta: { href: "/contact", label: "Get a quote", cls: "pill pill--white-on-black" },

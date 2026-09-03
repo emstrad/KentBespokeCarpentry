@@ -1,12 +1,13 @@
-import Image from "next/image";
+import type { StaticImageData } from "next/image";
 import { NAP } from "@/lib/site";
 import { BookButton } from "./BookButton";
+import { HeroImage } from "./HeroImage";
 import { ChevronDown } from "./Icons";
 
 type Word = { text: string; delay: number; light?: boolean; br?: boolean };
 
 type Props = {
-  src: string;
+  src: StaticImageData;
   alt: string;
   eyebrow: string;
   words: Word[];
@@ -21,20 +22,10 @@ export function Hero({ src, alt, eyebrow, words, variant, objectPosition = "50% 
     <section className="hero" aria-labelledby="page-h1">
       <div className={home ? "hero__card hero__card--mask" : "hero__card"}>
         <div className={home ? "hero__img-wrap" : "hero__img-wrap hero__img-wrap--fast"}>
-          <Image
-            className="hero__img"
-            src={src}
-            alt={alt}
-            fill
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={78}
-            style={{ objectFit: "cover", objectPosition }}
-          />
+          <HeroImage src={src} alt={alt} objectPosition={objectPosition} />
         </div>
         <div className={home ? "hero__tint" : "hero__tint hero__tint--45"} />
-        <div className="hero__content">
+        <div className="hero__content hero__gate">
           <p className={home ? "eyebrow" : "eyebrow eyebrow--early"}>{eyebrow}</p>
           <h1 id="page-h1" className="h-display hero__h1">
             {words.map((w, i) => (

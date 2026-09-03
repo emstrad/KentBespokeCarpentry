@@ -34,9 +34,9 @@ async function findRecentEnquiry(id: string) {
  * POST /api/enquiry/[id]/attachments
  *
  * Two bodies are accepted:
- *  1. Vercel Blob client-upload protocol ({ type, payload }) — issues a scoped upload token so the
+ *  1. Vercel Blob client-upload protocol ({ type, payload }): issues a scoped upload token so the
  *     browser can upload directly to Blob storage (bypasses the 4.5 MB serverless body limit).
- *  2. { attachments: [{ name, size, type, url? }] } — records the files against the enquiry and
+ *  2. { attachments: [{ name, size, type, url? }] }: records the files against the enquiry and
  *     emails the links to the team. `url` is optional so the flow degrades to names-only when no
  *     BLOB_READ_WRITE_TOKEN is configured.
  */
@@ -97,13 +97,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   try { saved = await appendAttachments(id, parsed.data.attachments); }
   catch (e) { console.error("[attachments] DB update failed:", e); }
 
-  const lines = parsed.data.attachments.map((a) => (a.url ? `${a.name} — ${a.url}` : `${a.name} (${Math.round(a.size / 1024)} KB, not stored)`));
+  const lines = parsed.data.attachments.map((a) => (a.url ? `${a.name}: ${a.url}` : `${a.name} (${Math.round(a.size / 1024)} KB, not stored)`));
   const mail = await sendFormSubmit({
-    _subject: `Inspiration for enquiry — ${enquiry.name}`,
+    _subject: `Inspiration for enquiry: ${enquiry.name}`,
     _replyto: enquiry.email,
     name: enquiry.name,
     email: enquiry.email,
-    phone: enquiry.phone ?? "—",
+    phone: enquiry.phone ?? "not given",
     reference: id,
     attachments: lines.join("\n"),
   });

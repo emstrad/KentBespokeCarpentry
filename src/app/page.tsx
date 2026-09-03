@@ -5,12 +5,13 @@ import { Hero } from "@/components/Hero";
 import { ProjectCard } from "@/components/ProjectCard";
 import { Showcase } from "@/components/Showcase";
 import { PROJECTS } from "@/lib/site";
+import heroImage from "../../public/assets/pergola-deck.jpg";
 
 export const metadata: Metadata = {
-  title: { absolute: "Kent Bespoke Carpentry Ltd — Bespoke joinery, made in Kent" },
+  title: { absolute: "Kent Bespoke Carpentry Ltd | Bespoke joinery, made in Kent" },
   description: "Kent Bespoke Carpentry design, build and install bespoke joinery across Kent: media walls, staircases, pergolas, garden rooms and fitted furniture.",
   alternates: { canonical: "/" },
-  openGraph: { title: "Kent Bespoke Carpentry Ltd — Bespoke joinery, made in Kent", url: "/" },
+  openGraph: { title: "Kent Bespoke Carpentry Ltd | Bespoke joinery, made in Kent", url: "/" },
 };
 
 export default function HomePage() {
@@ -18,7 +19,7 @@ export default function HomePage() {
     <>
       <Hero
         variant="home"
-        src="/assets/pergola-deck.jpg"
+        src={heroImage}
         alt="Timber pergola and decking built by Kent Bespoke Carpentry"
         eyebrow="Kent Bespoke Carpentry Ltd"
         words={[
@@ -35,7 +36,7 @@ export default function HomePage() {
           Joinery that fits your home<br /><span className="light">exactly, first time.</span>
         </h2>
         <p className="lede d15" data-reveal="">
-          From media walls and staircases to pergolas and garden rooms, we take every project from first sketch to final fix ourselves — one team, one standard, across Kent.
+          From media walls and staircases to pergolas and garden rooms, we take every project from first sketch to final fix ourselves: one team, one standard, across Kent.
         </p>
       </section>
 

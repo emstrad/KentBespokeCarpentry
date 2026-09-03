@@ -6,7 +6,7 @@ export const enquirySchema = z.object({
   phone: z.string().trim().max(40).optional().or(z.literal("")),
   ideas: z.string().trim().max(5000).optional().or(z.literal("")),
   source: z.enum(["booking", "contact"]),
-  /** Honeypot — must be empty. Bots that autofill every field trip it. */
+  /** Honeypot: must be empty. Bots that autofill every field trip it. */
   company: z.string().max(0).optional().or(z.literal("")),
 });
 
