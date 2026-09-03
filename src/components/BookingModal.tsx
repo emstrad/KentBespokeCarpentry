@@ -32,6 +32,7 @@ function Dialog({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [enquiryId, setEnquiryId] = useState<string | null>(null);
+  const [mailNote, setMailNote] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleId = "booking-title";
@@ -83,12 +84,15 @@ function Dialog({ onClose }: { onClose: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone, email, ideas, source: "booking", company }),
       });
-      const data = (await res.json().catch(() => ({}))) as { id?: string | null; error?: string; emailed?: boolean; stored?: boolean };
+      const data = (await res.json().catch(() => ({}))) as { id?: string | null; error?: string; emailed?: boolean; stored?: boolean; emailDetail?: string };
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again or call us.");
+      setMailNote(null);
       if (data.emailed === false) {
         // Server-side send was rejected; send the notification from the browser instead.
         const fb = await sendFormSubmitFromBrowser({ _subject: `New enquiry: ${name}`, _replyto: email, name, email, phone: phone || "not given", ideas, source: "booking", reference: data.id ?? "not stored" });
         if (!fb.ok && !data.stored) throw new Error(fb.message || "We couldn't send that right now. Please call us on 07494 280614.");
+        if (!fb.ok) setMailNote(`Email notification not confirmed. ${fb.message ? `FormSubmit said: "${fb.message}".` : ""} ${data.emailDetail ? `Server attempt: ${data.emailDetail}.` : ""} Your enquiry has been saved.`.replace(/\s+/g, " ").trim());
+        else if (fb.message) setMailNote(`FormSubmit: ${fb.message}`);
       }
       setEnquiryId(data.id ?? null);
       go(3);
@@ -206,6 +210,7 @@ function Dialog({ onClose }: { onClose: () => void }) {
               <span className="tick"><TickIcon /></span>
               <p><strong>Sent to our team, thank you.</strong> We&apos;ll call or email within one working day.</p>
             </div>
+            {mailNote && <p className="modal__mailnote" role="status">{mailNote}</p>}
             <label className="drop" htmlFor="bk-files">
               <UploadIcon />
               <span className="t">Add photos, sketches or links to things you like</span>

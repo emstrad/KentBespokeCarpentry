@@ -269,6 +269,7 @@ img { display: block; }
 .modal__step { display: flex; flex-direction: column; gap: 18px; animation: kbcStep 0.4s var(--ease-soft) both; }
 .modal__step[data-dir="back"] { animation-name: kbcStepBack; }
 .modal__hint { font-size: 13px; color: rgba(10,10,10,0.55); text-align: center; }
+.modal__mailnote { font-size: 13px; line-height: 1.5; color: rgba(10,10,10,0.6); padding: 10px 14px; border-radius: 6px; background: var(--stone); }
 .modal__btns { display: flex; gap: 10px; flex-wrap: wrap; }
 .modal__btns .grow { flex: 1; }
 .modal__ok { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 8px; background: var(--stone); }

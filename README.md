@@ -37,10 +37,7 @@ Other scripts: `npm run build`, `npm start`, `npm run typecheck`, `npm run lint`
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | yes | Neon connection string. Server-only; never imported by client code (`src/db/index.ts` is marked `server-only`). |
-| `RESEND_API_KEY` | recommended | When set, enquiry emails go through Resend's API instead of FormSubmit. Needs `kentbespokecarpentry.co.uk` verified as a sending domain in Resend. |
-| `RESEND_FROM` | optional | Sender for Resend, default `Kent Bespoke Carpentry <enquiries@kentbespokecarpentry.co.uk>`. Must be on a verified domain. |
-| `ENQUIRY_TO` | optional | Recipient(s), comma separated. Default `sales@kentbespokecarpentry.co.uk`. |
-| `FORMSUBMIT_ENDPOINT` | optional | Fallback provider when `RESEND_API_KEY` is unset. Default `https://formsubmit.co/ajax/sales@kentbespokecarpentry.co.uk`. |
+| `FORMSUBMIT_ENDPOINT` | yes | `https://formsubmit.co/ajax/sales@kentbespokecarpentry.co.uk` |
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin for metadata, sitemap, robots and JSON-LD. Defaults to `https://www.kentbespokecarpentry.co.uk` (the primary domain in Vercel; the bare domain redirects to it); an empty or malformed value is ignored rather than failing the build. Preview deployments (`VERCEL_ENV` ≠ `production`) are served with `X-Robots-Tag: noindex`. |
 | `BLOB_READ_WRITE_TOKEN` | optional | Enables inspiration-file storage in Vercel Blob. Auto-set when a Blob store is linked to the Vercel project. Without it, the booking modal still works and file *names* are emailed instead of links. |
 
@@ -63,6 +60,11 @@ emit a new SQL file, then `npm run db:migrate`.
 ## FormSubmit activation (one-off)
 
 FormSubmit requires the destination address to be confirmed before it forwards anything.
+The activation email goes to **the recipient address**, so whoever owns the sales@ inbox has
+to click it. To test end-to-end before the client does that, temporarily set both
+`FORMSUBMIT_ENDPOINT` and `NEXT_PUBLIC_FORMSUBMIT_ENDPOINT` to
+`https://formsubmit.co/ajax/your@address` on the Vercel project, redeploy, submit once, click
+the activation link in your own inbox, and submit again. Remove both variables afterwards.
 
 1. Deploy (or run locally with `FORMSUBMIT_ENDPOINT` set) and submit one enquiry.
 2. FormSubmit emails **sales@kentbespokecarpentry.co.uk** with an "Activate form" link.

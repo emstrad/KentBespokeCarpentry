@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb, schema } from "@/db";
 import { ensureSchema } from "@/db/bootstrap";
 import { enquirySchema } from "@/lib/enquiry";
-import { sendEnquiryEmail } from "@/lib/email";
+import { sendFormSubmit } from "@/lib/formsubmit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
@@ -13,10 +13,7 @@ export async function GET() {
   return NextResponse.json({
     databaseConfigured: !!process.env.DATABASE_URL,
     blobConfigured: !!process.env.BLOB_READ_WRITE_TOKEN,
-    emailProvider: process.env.RESEND_API_KEY ? "resend" : "formsubmit",
     formsubmitEndpoint: process.env.FORMSUBMIT_ENDPOINT?.trim() || "(default) https://formsubmit.co/ajax/sales@kentbespokecarpentry.co.uk",
-    resendFrom: process.env.RESEND_FROM?.trim() || "(default) Kent Bespoke Carpentry <enquiries@kentbespokecarpentry.co.uk>",
-    enquiryTo: process.env.ENQUIRY_TO?.trim() || "(default) sales@kentbespokecarpentry.co.uk",
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL?.trim() || "(default) https://www.kentbespokecarpentry.co.uk",
     vercelEnv: process.env.VERCEL_ENV ?? null,
   });
@@ -59,19 +56,17 @@ export async function POST(req: Request) {
     console.error("[enquiry] DB insert failed:", dbError);
   }
 
-  const mail = await sendEnquiryEmail({
-    subject: `New enquiry: ${name}`,
-    replyTo: email,
-    rows: {
-      Name: name,
-      Email: email,
-      Phone: phone || "not given",
-      "What they're thinking of": ideas || "not given",
-      Source: source === "booking" ? "Book a visit form" : "Contact page form",
-      Reference: id ?? "not stored",
-    },
+  const mail = await sendFormSubmit({
+    _subject: `New enquiry: ${name}`,
+    _replyto: email,
+    name,
+    email,
+    phone: phone || "not given",
+    ideas: ideas || "not given",
+    source,
+    reference: id ?? "not stored",
   });
-  if (!mail.ok) console.error(`[enquiry] email via ${mail.provider} failed:`, mail.detail);
+  if (!mail.ok) console.error("[enquiry] FormSubmit failed:", mail.detail);
 
   if (!stored && !mail.ok) {
     return NextResponse.json({

@@ -6,7 +6,7 @@ import { getDb, schema } from "@/db";
 import { ensureSchema } from "@/db/bootstrap";
 import type { Attachment } from "@/db/schema";
 import { ACCEPTED_TYPES, MAX_FILES, MAX_FILE_BYTES } from "@/lib/enquiry";
-import { sendEnquiryEmail } from "@/lib/email";
+import { sendFormSubmit } from "@/lib/formsubmit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
@@ -100,12 +100,16 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   catch (e) { console.error("[attachments] DB update failed:", e); }
 
   const lines = parsed.data.attachments.map((a) => (a.url ? `${a.name}: ${a.url}` : `${a.name} (${Math.round(a.size / 1024)} KB, not stored)`));
-  const mail = await sendEnquiryEmail({
-    subject: `Inspiration for enquiry: ${enquiry.name}`,
-    replyTo: enquiry.email,
-    rows: { Name: enquiry.name, Email: enquiry.email, Phone: enquiry.phone ?? "not given", Reference: id, Files: lines.join("\n") },
+  const mail = await sendFormSubmit({
+    _subject: `Inspiration for enquiry: ${enquiry.name}`,
+    _replyto: enquiry.email,
+    name: enquiry.name,
+    email: enquiry.email,
+    phone: enquiry.phone ?? "not given",
+    reference: id,
+    attachments: lines.join("\n"),
   });
-  if (!mail.ok) console.error(`[attachments] email via ${mail.provider} failed:`, mail.detail);
+  if (!mail.ok) console.error("[attachments] FormSubmit failed:", mail.detail);
 
   return NextResponse.json({ ok: true, attachments: saved, emailed: mail.ok });
 }
