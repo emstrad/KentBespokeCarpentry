@@ -6,7 +6,10 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { Showcase } from "@/components/Showcase";
 import { Checkatrade } from "@/components/Checkatrade";
 import { CREDENTIALS, PROJECTS } from "@/lib/site";
-import heroImage from "../../public/assets/roof-ridge.jpg";
+import heroCutRoof from "../../public/assets/cut-roof-extension.jpg";
+import heroRafters from "../../public/assets/extension-rafters.jpg";
+import heroLoft from "../../public/assets/loft-roof-frame.jpg";
+import heroRidge from "../../public/assets/roof-ridge.jpg";
 
 export const metadata: Metadata = {
   title: { absolute: "Carpentry & Joinery in Kent | First Fix, Second Fix & Bespoke" },
@@ -15,16 +18,24 @@ export const metadata: Metadata = {
   openGraph: { title: "Carpentry & Joinery in Kent | Kent Bespoke Carpentry", url: "/" },
 };
 
+/**
+ * The hero cross fades through three roof frames. All three are 1206px wide, which is the
+ * sharpest first fix work we hold: the ridge photo is 941px and visibly soft once stretched
+ * across a wide card, so it stays in the Recent work grid where it is shown small.
+ */
+const HERO_SLIDES = [
+  { src: heroCutRoof, alt: "Cut roof rafters framed off a blockwork extension", objectPosition: "50% 52%", objectPositionMobile: "50% 50%" },
+  { src: heroRafters, alt: "Lean-to extension rafters set off a wall plate", objectPosition: "50% 46%", objectPositionMobile: "50% 48%" },
+  { src: heroLoft, alt: "Loft conversion floor joists and rafters framed up", objectPosition: "50% 46%", mobileSrc: heroRidge, objectPositionMobile: "50% 76%" },
+];
+
 export default function HomePage() {
   return (
     <>
       <Hero
         variant="home"
-        src={heroImage}
-        alt="Ridge of a newly cut roof built by Kent Bespoke Carpentry"
+        slides={HERO_SLIDES}
         eyebrow="Carpentry and joinery across Kent"
-        objectPosition="50% 44%"
-        objectPositionMobile="50% 76%"
         sub="Fifteen years of first fix, second fix and bespoke joinery across Kent."
         reviews
         trust={["15 years", "Family run", "Fixed quotes"]}

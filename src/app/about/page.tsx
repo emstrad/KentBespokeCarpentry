@@ -24,12 +24,9 @@ export default function AboutPage() {
     <>
       <Hero
         variant="about"
-        src={heroImage}
-        alt="Softwood staircase with glass balustrade, mid-installation"
+        slides={[{ src: heroImage, alt: "Softwood staircase with glass balustrade, mid-installation", objectPosition: "50% 50%", objectPositionMobile: "55% 55%" }]}
         eyebrow="About us"
-        objectPositionMobile="55% 55%"
         sub="Fifteen years of carpentry and joinery across Kent."
-        objectPosition="50% 50%"
         words={[
           { text: "Built on", delay: 0.2, br: true },
           { text: "craft and care.", delay: 0.35, light: true },

@@ -1,24 +1,18 @@
-import type { StaticImageData } from "next/image";
 import { NAP } from "@/lib/site";
 import { BookButton } from "./BookButton";
 import { Checkatrade } from "./Checkatrade";
-import { HeroImage } from "./HeroImage";
+import { HeroImage, type HeroSlide } from "./HeroImage";
 import { ChevronDown } from "./Icons";
 
 type Word = { text: string; delay: number; light?: boolean; br?: boolean };
 
 type Props = {
-  src: StaticImageData;
-  alt: string;
+  /** The hero photo, or several to cross fade between. Only the first is on the critical path. */
+  slides: HeroSlide[];
   eyebrow: string;
   words: Word[];
   /** Home variant: mask wipe, CTAs, Scroll tab. About variant: scale only. */
   variant: "home" | "about";
-  objectPosition?: string;
-  /** Crop focus below 768px, where the card is portrait rather than landscape. */
-  objectPositionMobile?: string;
-  /** Portrait-native photo used below 768px instead of the desktop one. */
-  mobileSrc?: StaticImageData;
   /** One-line explainer, shown on mobile only so the desktop composition is unchanged. */
   sub?: string;
   /** Short proof points under the mobile CTAs. Mobile only. */
@@ -27,13 +21,13 @@ type Props = {
   reviews?: boolean;
 };
 
-export function Hero({ src, alt, eyebrow, words, variant, objectPosition = "50% 42%", objectPositionMobile, mobileSrc, sub, trust, reviews }: Props) {
+export function Hero({ slides, eyebrow, words, variant, sub, trust, reviews }: Props) {
   const home = variant === "home";
   return (
     <section className="hero" aria-labelledby="page-h1">
       <div className={home ? "hero__card hero__card--mask" : "hero__card"}>
         <div className={home ? "hero__img-wrap" : "hero__img-wrap hero__img-wrap--fast"}>
-          <HeroImage src={src} alt={alt} objectPosition={objectPosition} objectPositionMobile={objectPositionMobile ?? objectPosition} mobileSrc={mobileSrc} />
+          <HeroImage slides={slides} />
         </div>
         <div className={home ? "hero__tint" : "hero__tint hero__tint--45"} />
         <div className="hero__content hero__gate">
