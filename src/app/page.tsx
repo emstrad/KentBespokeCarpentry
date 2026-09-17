@@ -74,7 +74,7 @@ export default function HomePage() {
           <Link href="/projects" className="ul-link" data-reveal=""><span>View all projects →</span><span /></Link>
         </div>
         <div className="projects__grid">
-          {PROJECTS.map((p) => (
+          {PROJECTS.slice(0, 9).map((p) => (
             <ProjectCard key={p.slug} project={p} href="/projects" headingLevel="h3" />
           ))}
         </div>

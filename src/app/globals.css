@@ -173,7 +173,19 @@ img { display: block; }
 .hero__card[data-loaded="true"] .hero__ctas { animation: kbcUp 1s var(--ease-out) 1.3s both; }
 .hero__scroll { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; }
 .hero__card[data-loaded="true"] .hero__scroll { animation: kbcUp 1s var(--ease-out) 1.3s both; }
-.hero__scroll > div { background: #fff; color: var(--navy); border-radius: 8px 8px 0 0; padding: 14px 22px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+.hero__scroll > div {
+  /* Frosted rather than solid, so the photo carries on behind the tab. */
+  background: rgba(255,255,255,0.14); color: #fff;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.28); border-bottom: 0;
+  border-radius: 8px 8px 0 0; padding: 14px 22px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+}
+/* Without blur support the translucent fill alone is too weak to read against timber. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hero__scroll > div { background: rgba(14,33,64,0.55); }
+}
 .hero__scroll svg { animation: kbcBob 1.5s ease-in-out infinite; }
 
 /* ---------- Intro ---------- */

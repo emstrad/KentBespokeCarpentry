@@ -30,8 +30,8 @@ export const SECTOR_PAGES: SectorPage[] = [
       "Residential carpentry across Kent and the South East: extensions, renovations, loft conversions and single rooms. First fix, second fix and bespoke joinery from one family run team.",
     intro:
       "Most of our work is in people's homes, from a single alcove unit to the full carpentry package on an extension. Living in a house while it is being worked on is nobody's idea of a good time, so we plan around you, keep the working area contained and tell you what is happening next.",
-    hero: "/assets/media-wall.jpg",
-    heroAlt: "Bespoke media wall with lit display niches in a finished living room",
+    hero: "/assets/fitted-wardrobes-open.jpg",
+    heroAlt: "Fitted wardrobes opened to show hanging rails, oak tops and drawer banks built into the alcoves",
     audience: [
       { heading: "Homeowners", body: "Working directly with you, from one room to a whole house. One point of contact, a fixed quote and no sub-contractor surprises." },
       { heading: "Extensions and conversions", body: "The full carpentry package alongside your builder: roof carcassing and partitions at first fix, doors, trim and staircases at second." },

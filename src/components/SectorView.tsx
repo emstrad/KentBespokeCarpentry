@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Banner } from "@/components/Banner";
 import { Faqs } from "@/components/Faqs";
 import { JsonLd, faqJsonLd } from "@/components/JsonLd";
@@ -16,6 +17,12 @@ export function SectorView({ sector }: { sector: SectorPage }) {
       <JsonLd data={faqJsonLd(sector.faqs)} />
       <Crumb href="/" label="Home" />
       <PageHead eyebrow={sector.eyebrow} h1={sector.h1} intro={sector.intro} />
+
+      <section className="band" aria-hidden="true">
+        <div className="band__img" data-drift="">
+          <Image src={sector.hero} alt={sector.heroAlt} fill sizes="100vw" quality={74} style={{ objectFit: "cover" }} />
+        </div>
+      </section>
 
       <section className="section approach" aria-labelledby="who-h">
         <h2 id="who-h" className="h-md" data-reveal="">Who we work for</h2>
